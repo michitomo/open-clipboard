@@ -1,5 +1,5 @@
 /**
- * open-clipboard 0.2.0
+ * open-clipboard 0.2.1
  * shares your clipboard through you're local web server.
  *
  * because communicator can't share images.
@@ -8,10 +8,11 @@
  * * * * * */
 
 Object.prototype.def = {
-    title : "open-clipboard 0.2.0",
+    title : "open-clipboard 0.2.1",
 
     host_name     : "localhost/",
     document_root : "C:\\webbbb\\",
+    //page_path : for extra path. "\\" or "/" at the end and for the path separator.
     page_path     : "",
     index_html    : "index.html",
     clip_img      : "img.png",
@@ -63,6 +64,14 @@ Object.prototype.util = {
             + "-" + this.util.fill_zero(t.getMinutes(),      2)
             + "-" + this.util.fill_zero(t.getSeconds(),      2)
             + "-" + this.util.fill_zero(t.getMilliseconds(), 3);
+    },
+
+    to_win_path_separator : function(str){
+        return str.replace(/\//g,"\\");
+    },
+
+    to_unix_path_separator : function(str){
+        return str.replace(/\\/g,"/");
     }
 };
 
@@ -77,6 +86,14 @@ var opclip = {
         Main.createNotifyIcon();
         Main.notifyIcon.icon = this.off_ico;
         Main.notifyIcon.text = this.def.title;
+
+        //for not showing index.
+        var index_html = (new File(
+            this.def.document_root
+                + this.util.to_win_path_separator(this.def.page_path)
+                + this.def.index_html
+        ));
+        index_html.create();
 
         var that = this;
         Main.notifyIcon.observe("lbuttonUp", function(){
@@ -127,8 +144,12 @@ var opclip = {
             var html = opclip.get_img_html();
             var img  = this.util.clip.image;
 
-            img.save(this.def.document_root + this.def.page_path + dir.rand  + "\\" + this.def.clip_img
-                , {quality : 100});
+            img.save(this.def.document_root
+                + this.util.to_win_path_separator(this.def.page_path)
+                + dir.rand  + "\\"
+                + this.def.clip_img
+                , {quality : 100}
+            );
             free(img);
 
             Main.notifyIcon.showInfo(time, "IMAGE shared");
@@ -136,20 +157,33 @@ var opclip = {
             opclip.create_page(dir.rand , html);
             opclip.clear(dir.obj);
             opclip.off();
-            this.util.clip.write("text", "http://" + this.def.host_name + this.def.page_path + dir.rand);
+            this.util.clip.write("text",
+                "http://"
+                    + this.def.host_name
+                    + this.util.to_unix_path_separator(this.def.page_path)
+                    + dir.rand);
         }
     },
 
     create_dir : function(){
         var rand = this.util.rand_str(16, false);
-        var dir = (new Directory(this.def.document_root + this.def.page_path + rand));
+        var dir = (new Directory(
+            this.def.document_root
+                + this.util.to_win_path_separator(this.def.page_path)
+                + rand
+        ));
         dir.create();
         return {rand : rand, obj : dir};
     },
 
     create_page : function(rand, str){
         var html = this.util.header_html.load() + str + this.util.footer_html.load();
-        var index_html = (new File(this.def.document_root + this.def.page_path + rand  + "\\" + this.def.index_html));
+        var index_html = (new File(
+            this.def.document_root
+                + this.util.to_win_path_separator(this.def.page_path)
+                + rand  + "\\"
+                + this.def.index_html
+        ));
         index_html.create().update(html);
     },
 
