@@ -1,5 +1,5 @@
 /**
- * open-clipboard 0.1.0
+ * open-clipboard 0.2.0
  * shares your clipboard through you're local web server.
  *
  * because communicator can't share images.
@@ -8,35 +8,48 @@
  * * * * * */
 
 Object.prototype.def = {
-    title : "open-clipboard 0.1.0",
+    title : "open-clipboard 0.2.0",
 
-    img_dir_web : "img\\",
-    /**
-     * Main.scriptDirectory -> your web server document directory
-     * */
-    img_dir     : Main.scriptDirectory + "\\img\\",
-    index_html  : Main.scriptDirectory + "\\index.html",
-    header_html : Main.scriptDirectory + "\\header.html",
-    footer_html : Main.scriptDirectory + "\\footer.html",
-    text_file   : Main.scriptDirectory + "\\text.txt",
+    host_name     : "localhost/",
+    document_root : "C:\\webbbb\\",
+    page_path     : "",
+    index_html    : "index.html",
+    clip_img      : "img.png",
+
+    cur_dir       : Main.scriptDirectory + "\\",
+    header_html   : "header.html",
+    footer_html   : "footer.html",
+    on_img        : "on.ico",
+    off_img       : "off.ico",
 
     timeout : 300000 // ms
 };
 
 Object.prototype.util = {
-    img_dir     : (new Directory(this.def.img_dir)),
-    index_html  : (new File(this.def.index_html)),
-    header_html : (new File(this.def.header_html)),
-    footer_html : (new File(this.def.footer_html)),
-    text_file   : (new File(this.def.text_file)),
+    header_html : (new File(this.def.cur_dir + this.def.header_html)),
+    footer_html : (new File(this.def.cur_dir + this.def.footer_html)),
 
     clip : require("Clipboard").Clipboard,
-    img  : require("Image").Image,
+    icon : require("Image").Icon,
 
     fill_zero : function(num, digit){
         var str = "" + num;
         while(str.length < digit){
             str = "0" + str;
+        }
+        return str;
+    },
+
+    rand_str : function(len, symbols){
+        var str = "";
+        var list = "0123456789"
+            + "abcdefghijklmnopqrstuvwxyz";
+        if(symbols){
+            list += '!"#$%&\'()-=^~\\|@`[{;+:*]},<.>/?_';
+        }
+        list.split("");
+        for(var i=0; i<len; i++){
+            str += list[Math.floor(Math.random() * list.length)];
         }
         return str;
     },
@@ -50,104 +63,103 @@ Object.prototype.util = {
             + "-" + this.util.fill_zero(t.getMinutes(),      2)
             + "-" + this.util.fill_zero(t.getSeconds(),      2)
             + "-" + this.util.fill_zero(t.getMilliseconds(), 3);
-    },
-
-    hsc : function(str){
-        str = str.replace(/</g,"&lt;");
-        str = str.replace(/>/g,"&gt;");
-        str = str.replace(/&/g,"&amp;");
-        str = str.replace(/"/g,"&quot;");
-        str = str.replace(/'/g,"&#039;");
-        return str ;
     }
 };
 
 var opclip = {
+
+    status : false,
+
+    on_ico  : this.util.icon.load(this.def.cur_dir + this.def.on_img),
+    off_ico : this.util.icon.load(this.def.cur_dir + this.def.off_img),
+
     main : function(){
+        Main.createNotifyIcon();
+        Main.notifyIcon.icon = this.off_ico;
+        Main.notifyIcon.text = this.def.title;
+
+        var that = this;
+        Main.notifyIcon.observe("lbuttonUp", function(){
+            that.toggle();
+        });
+
         this.context_menu();
     },
 
     context_menu : function(){
-        Main.createNotifyIcon();
         var that = this;
         Main.addCommands({
-            "text+image" : function(){ that.on("both"); },
-            "text"       : function(){ that.on("text"); },
-            "image"      : function(){ that.on("image"); },
-            "off"        : function(){ that.off(); },
-            "exit"       : function(){ exit(); }
-        });
-        Main.addTexts({
-            exit : "exit"
+            "オン" : function(){ that.on(); },
+            "オフ" : function(){ that.off(); }
         });
         Main.notifyIcon.contextMenu.insert(
             null,
-            "text+image",
-            "text",
-            "image",
-            null,
-            "off",
+            "オン",
+            "オフ",
             null
         );
     },
 
-    on : function(type){
-        this.off();
-        if(type === "both" || type === "text"){
-            this.util.clip.observe("change", this.obs_text);
+    toggle : function(){
+        if(!this.status){
+            this.on();
+        }else{
+            this.off();
         }
-        if(type === "both" || type === "image"){
-            this.util.clip.observe("change", this.obs_img);
-        }
+    },
+
+    on : function(){
+        Main.notifyIcon.icon = this.on_ico;
+        this.status = true;
+        this.util.clip.observe("change", this.obs_img);
     },
 
     off : function(){
-        this.util.clip.unobserve("change", this.obs_text);
+        Main.notifyIcon.icon = this.off_ico;
+        this.status = false;
         this.util.clip.unobserve("change", this.obs_img);
     },
 
-    obs_text : function(){
-        var time = this.util.get_time();
-        if(this.util.clip.hasFormat("text")){
-            str = opclip.get_text_html(this.util.clip.text);
-            Main.notifyIcon.showInfo(time, "TEXT shared");
-        }
-        opclip.create_page(str);
-        opclip.clear();
-    },
-
     obs_img : function(){
-        var time = this.util.get_time();
         if(this.util.clip.hasFormat("image")){
-            this.util.img_dir.create();
-            var file = time + ".png";
-            str = opclip.get_img_html(file);
-            var img = this.util.clip.image;
-            img.save(this.def.img_dir + file, {quality : 100});
+            var time = this.util.get_time();
+            var dir  = opclip.create_dir();
+            var html = opclip.get_img_html();
+            var img  = this.util.clip.image;
+
+            img.save(this.def.document_root + this.def.page_path + dir.rand  + "\\" + this.def.clip_img
+                , {quality : 100});
             free(img);
+
             Main.notifyIcon.showInfo(time, "IMAGE shared");
+
+            opclip.create_page(dir.rand , html);
+            opclip.clear(dir.obj);
+            opclip.off();
+            this.util.clip.write("text", "http://" + this.def.host_name + this.def.page_path + dir.rand);
         }
-        opclip.create_page(str);
-        opclip.clear();
     },
 
-    get_text_html : function(text){
-        return this.util.hsc(text);
+    create_dir : function(){
+        var rand = this.util.rand_str(16, false);
+        var dir = (new Directory(this.def.document_root + this.def.page_path + rand));
+        dir.create();
+        return {rand : rand, obj : dir};
     },
 
-    get_img_html : function(file){
-        return "<img src='" + this.def.img_dir_web + file + "'>";
-    },
-
-    create_page : function(str){
+    create_page : function(rand, str){
         var html = this.util.header_html.load() + str + this.util.footer_html.load();
-        this.util.index_html.create()
-            .update(html);
+        var index_html = (new File(this.def.document_root + this.def.page_path + rand  + "\\" + this.def.index_html));
+        index_html.create().update(html);
     },
 
-    clear : function(){
+    get_img_html : function(){
+        return "<img src='"+ this.def.clip_img +"'>";
+    },
+
+    clear : function(dir){
         setTimeout(function(){
-            opclip.create_page("");
+            dir.remove();
         }, this.def.timeout);
     }
 
