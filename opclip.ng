@@ -1,6 +1,6 @@
 /**
- * open-clipboard 0.2.1
- * shares your clipboard through you're local web server.
+ * open-clipboard 1.0.0
+ * shares your clipboard image through your local web server.
  *
  * because communicator can't share images.
  *
@@ -8,20 +8,23 @@
  * * * * * */
 
 Object.prototype.def = {
-    title : "open-clipboard 0.2.1",
+    title : "open-clipboard 1.0.0",
 
-    host_name     : "localhost/",
-    document_root : "C:\\webbbb\\",
-    //page_path : for extra path. "\\" or "/" at the end and for the path separator.
-    page_path     : "",
-    index_html    : "index.html",
-    clip_img      : "img.png",
+    /***** you may need to edit from here *****/
+    use_httpd     : true,         // if httpd is prepared by yourself -> httpd : false,
+    host_name     : "localhost/", // hostname or IP address
+    document_root : "C:\\nil\\",  // the directory that will be public
+    page_path     : "clip\\",     // for extra path. "\\" or "/" at the end and for the separator.
+    /***** you may need to edit to here *****/
 
     cur_dir       : Main.scriptDirectory + "\\",
     header_html   : "header.html",
     footer_html   : "footer.html",
     on_img        : "on.ico",
     off_img       : "off.ico",
+
+    index_html    : "index.html",
+    clip_img      : "img.png",
 
     timeout : 300000 // ms
 };
@@ -30,8 +33,9 @@ Object.prototype.util = {
     header_html : (new File(this.def.cur_dir + this.def.header_html)),
     footer_html : (new File(this.def.cur_dir + this.def.footer_html)),
 
-    clip : require("Clipboard").Clipboard,
-    icon : require("Image").Icon,
+    clip  : require("Clipboard").Clipboard,
+    icon  : require("Image").Icon,
+    httpd : require("HTTPD").HTTPD,
 
     fill_zero : function(num, digit){
         var str = "" + num;
@@ -87,13 +91,16 @@ var opclip = {
         Main.notifyIcon.icon = this.off_ico;
         Main.notifyIcon.text = this.def.title;
 
-        //for not showing index.
-        var index_html = (new File(
-            this.def.document_root
-                + this.util.to_win_path_separator(this.def.page_path)
-                + this.def.index_html
-        ));
-        index_html.create();
+        if(this.def.use_httpd){
+            this.run_httpd(this.def.document_root);
+        }else{
+            var index_html = (new File(
+                this.def.document_root
+                    + this.util.to_win_path_separator(this.def.page_path)
+                    + this.def.index_html
+            ));
+            index_html.create();
+        }
 
         var that = this;
         Main.notifyIcon.observe("lbuttonUp", function(){
@@ -101,6 +108,16 @@ var opclip = {
         });
 
         this.context_menu();
+    },
+
+    run_httpd : function(document_root){
+        this.util.httpd.create({
+            paths : {
+                "" : Main.directory.directory(document_root)
+            },
+
+            index : function(con)(con.error(404))
+        });
     },
 
     context_menu : function(){
@@ -154,14 +171,15 @@ var opclip = {
 
             Main.notifyIcon.showInfo(time, "IMAGE shared");
 
-            opclip.create_page(dir.rand , html);
+            opclip.create_page(dir.rand, html);
             opclip.clear(dir.obj);
             opclip.off();
             this.util.clip.write("text",
                 "http://"
                     + this.def.host_name
                     + this.util.to_unix_path_separator(this.def.page_path)
-                    + dir.rand);
+                    + dir.rand
+                    + "/");
         }
     },
 
