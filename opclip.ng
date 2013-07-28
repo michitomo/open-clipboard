@@ -1,6 +1,6 @@
 /**
  * open-clipboard 1.0.0
- * shares your clipboard image through your local web server.
+ * shares your clipboard image through local web server.
  *
  * because communicator can't share images.
  *
