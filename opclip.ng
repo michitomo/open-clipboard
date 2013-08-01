@@ -1,5 +1,5 @@
 /**
- * open-clipboard 1.0.0
+ * open-clipboard 1.0.1
  * shares your clipboard image through local web server.
  *
  * because communicator can't share images.
@@ -8,10 +8,9 @@
  * * * * * */
 
 Object.prototype.def = {
-    title : "open-clipboard 1.0.0",
+    title : "open-clipboard 1.0.1",
 
     /***** you may need to edit from here *****/
-    host_name     : "localhost/", // hostname or IP address
     use_httpd     : true,         // if httpd is prepared by yourself -> httpd : false,
     document_root : "C:\\nil\\",  // the directory that will be public
     page_path     : "clip\\",     // for extra path. "\\" or "/" at the end and for the separator.
@@ -23,10 +22,11 @@ Object.prototype.def = {
     on_img        : "on.ico",
     off_img       : "off.ico",
 
+    host_name     : System.computer.host + "/", // hostname or IP address
     index_html    : "index.html",
     clip_img      : "img.png",
 
-    timeout : 300000 // ms
+    timeout : 3600000 // ms
 };
 
 Object.prototype.util = {
@@ -81,7 +81,7 @@ Object.prototype.util = {
 
 var opclip = {
 
-    status : false,
+    status  : false,
 
     on_ico  : this.util.icon.load(this.def.cur_dir + this.def.on_img),
     off_ico : this.util.icon.load(this.def.cur_dir + this.def.off_img),
