@@ -151,10 +151,10 @@ var opclip = {
 
     obs_img : function(){
         if(this.util.clip.hasFormat("image")){
-            var time = this.util.get_time();
-            var dir  = opclip.create_dir();
+            var time     = this.util.get_time();
+            var dir      = opclip.create_dir();
             var img_html = opclip.get_img_html();
-            var img  = this.util.clip.image;
+            var img      = this.util.clip.image;
 
             img.save(this.def.document_root
                 + this.util.to_win_path_separator(this.def.page_path)
@@ -166,8 +166,10 @@ var opclip = {
 
             Main.notifyIcon.showInfo(time, "IMAGE shared");
 
-            opclip.create_page(dir.rand + "\\" + this.def.index_html,
-                this.util.header_html.load() + img_html + this.util.footer_html.load());
+            opclip.create_page(
+                dir.rand + "\\" + this.def.index_html,
+                this.util.header_html.load() + img_html + this.util.footer_html.load()
+            );
             opclip.clear(dir.obj);
             opclip.off();
             this.util.clip.write("text",
@@ -181,7 +183,7 @@ var opclip = {
 
     create_dir : function(){
         var rand = this.util.rand_str(16, false);
-        var dir = (new Directory(
+        var dir  = (new Directory(
             this.def.document_root
                 + this.util.to_win_path_separator(this.def.page_path)
                 + rand
