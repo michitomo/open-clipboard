@@ -81,7 +81,7 @@ Object.prototype.util = {
     },
 
     load_config : function(){
-        var config = JSON.parse(this.util.config_file.load());
+        var config = JSON.parse(this.util.config_file.load() || "{}");
         for(var prop in config){
             this.def[prop] = config[prop].value
         }
