@@ -1,0 +1,23 @@
+{
+    "use_httpd" : {
+        "explanation" : "if you are using your own web server, set false",
+        "value"       : true
+    },
+    "httpd_port" : {
+        "explanation" : "port number you want use",
+        "value"       : 80
+    },
+    "document_root" : {
+        "explanation" : "the directory that will be public",
+        "value"       : "C:\\nil\\"
+    },
+
+    "page_path" : {
+        "explanation" : "for extra path. '\\'  or '/' at the end and for the separator",
+        "value"       : "clip\\"
+    },
+    "timeout" : {
+        "explanation" : "time to delete saved image. milli second",
+        "value"       : 3600000
+    }
+}
