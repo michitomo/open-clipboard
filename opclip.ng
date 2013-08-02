@@ -1,5 +1,5 @@
 /**
- * open-clipboard 1.0.2
+ * open-clipboard 1.0.3
  * shares your clipboard image through local web server.
  *
  * because communicator can't share images.
@@ -8,10 +8,11 @@
  * * * * * */
 
 Object.prototype.def = {
-    title : "open-clipboard 1.0.2",
+    title : "open-clipboard 1.0.3",
 
     /***** you may need to edit from here *****/
     use_httpd     : true,         // if httpd is prepared by yourself -> httpd : false,
+    httpd_port    : 80,           // port number you want use
     document_root : "C:\\nil\\",  // the directory that will be public
     page_path     : "clip\\",     // for extra path. "\\" or "/" at the end and for the separator.
     /***** you may need to edit to here *****/
@@ -22,7 +23,7 @@ Object.prototype.def = {
     on_img        : "on.ico",
     off_img       : "off.ico",
 
-    host_name     : System.computer.host + "/", // hostname or IP address
+    domain        : System.computer.host, // domain or IP address
     index_html    : "index.html",
     clip_img      : "img.png",
 
@@ -123,7 +124,7 @@ var opclip = {
             paths : {
                 "" : Main.directory.directory(document_root)
             },
-
+            port  : this.def.httpd_port,
             index : function(con)(con.error(404))
         });
     },
@@ -187,7 +188,9 @@ var opclip = {
             opclip.off();
             this.util.clip.write("text",
                 "http://"
-                    + this.def.host_name
+                    + this.def.domain
+                    + (this.def.httpd_port===80 ? "" : ":" + this.def.httpd_port)
+                    + "/"
                     + this.util.to_unix_path_separator(this.def.page_path)
                     + dir.rand
                     + "/");
