@@ -1,5 +1,5 @@
 /**
- * open-clipboard 1.0.1
+ * open-clipboard 1.0.2
  * shares your clipboard image through local web server.
  *
  * because communicator can't share images.
@@ -8,7 +8,7 @@
  * * * * * */
 
 Object.prototype.def = {
-    title : "open-clipboard 1.0.1",
+    title : "open-clipboard 1.0.2",
 
     /***** you may need to edit from here *****/
     use_httpd     : true,         // if httpd is prepared by yourself -> httpd : false,
@@ -97,12 +97,25 @@ var opclip = {
             this.create_page(this.def.index_html, "");
         }
 
+        this.set_observers();
+
+        this.context_menu();
+    },
+
+    set_observers : function(){
         var that = this;
+
         Main.notifyIcon.observe("lbuttonUp", function(){
             that.toggle();
         });
 
-        this.context_menu();
+        Main.observe("exit", function(){
+            var dir = (new Directory(
+                that.def.document_root
+                    + that.util.to_win_path_separator(that.def.page_path)
+            ));
+            dir.remove();
+        });
     },
 
     run_httpd : function(document_root){
