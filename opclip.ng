@@ -234,7 +234,7 @@ var opclip = {
 
     clear : function(dir){
         setTimeout(function(){
-            dir.remove();
+            dir.exists && dir.remove();
         }, this.def.timeout);
     }
 
