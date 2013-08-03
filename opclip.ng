@@ -1,5 +1,5 @@
 /**
- * open-clipboard 1.1.0
+ * open-clipboard 1.1.1
  * shares your clipboard image through local web server.
  *
  * because communicator can't share images.
@@ -8,7 +8,7 @@
  * * * * * */
 
 Object.prototype.def = {
-    title : "open-clipboard 1.1.0",
+    title : "open-clipboard 1.1.1",
 
     config_file   : "config.json",
 
@@ -126,7 +126,7 @@ var opclip = {
                 that.def.document_root
                     + that.util.to_win_path_separator(that.def.page_path)
             ));
-            dir.remove();
+            dir.exists && dir.remove();
         });
     },
 
