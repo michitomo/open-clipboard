@@ -5,7 +5,7 @@
     },
     "httpd_port" : {
         "explanation" : "port number you want use",
-        "value"       : 80
+        "value"       : 2525
     },
     "document_root" : {
         "explanation" : "the directory that will be public",
